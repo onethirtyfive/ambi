@@ -1,16 +1,18 @@
 require 'ambi'
 
 module Ambi
-  describe '#parse!' do
-    let(:runner) { DSL::Top.runner_klass.new }
+  describe 'Ambi#parse!' do
+    subject { Ambi}
+
+    let!(:scope) { Scope.new(DSL::Top) }
 
     before do
-      DSL::Top.stub!(:runner).and_return(runner)
+      Scope.stub!(:new).and_return(scope)
     end
 
-    it 'evaluates in the context of the DSL' do
-      runner.should_receive(:domain).once
-      Ambi.parse! <<-EOV
+    it 'evaluates in the DSL-enabled scope' do
+      scope.should_receive(:domain).once
+      subject.parse! <<-EOV
         domain 'myblog.com'
       EOV
     end

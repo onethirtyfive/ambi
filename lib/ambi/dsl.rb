@@ -1,35 +1,22 @@
-Dir[File.dirname(__FILE__) + '/dsl/*.rb'].each { |file| require file }
-
-require 'active_support/core_ext/string'
+['top', 'domain', 'app'].each do |level|
+  require "ambi/dsl/#{level}"
+end
 
 module Ambi
   module DSL
-    module Runnable
+    module Common
       def self.included(receiver)
-        receiver.instance_eval <<-EOV
-          def self.runner_klass
-            @klass ||=
-              Class.new(Object) do
-                include #{receiver}
-
-                def call(source = nil, &block)
-                  if source.respond_to?(:to_str)
-                    instance_eval(source)
-                  elsif block_given?
-                    instance_eval(&block)
-                  end
-                end
-              end
-            @klass
-          end
-
-          def self.runner
-            runner_klass.new
-          end
-        EOV
+        receiver.send(:include, Syntax)
       end
-    end # Runnable
 
-    [Top].each { |klass| klass.send(:include, Runnable) }
-  end # DSL
-end #  Ambi
+      module Syntax
+        def expose!(name, context = {})
+        end
+      end
+    end
+
+    [Domain, App].each do |dsl|
+      dsl.send(:include, Common)
+    end
+  end
+end

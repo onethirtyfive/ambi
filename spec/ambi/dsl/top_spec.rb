@@ -3,15 +3,15 @@ require 'spec_helper'
 module Ambi
   module DSL
     describe Top do
-      subject { Top.runner }
+      subject { ::Ambi::Scope.new(Top) }
 
-      describe '#domain' do
-        it 'registers a domain' do
-          expect {
-            subject.call do
-              domain 'myblog.com'
-            end
-          }.to change(::Ambi::Domain, :all)
+      context 'quacking' do
+        it 'responds to #domain' do
+          subject.should respond_to(:domain)
+        end
+
+        it 'responds to #app' do
+          subject.should respond_to(:app)
         end
       end
     end
