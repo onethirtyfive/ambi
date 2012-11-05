@@ -10,9 +10,8 @@ module Ambi
       end
 
       def register(name)
-        unless domains.include?(name)
-          domains[name] = new
-        end
+        name = name.to_sym
+        domains[name] = new unless domains.include?(name)
         domains[name]
       end
 
