@@ -10,13 +10,24 @@ module Ambi
       end
 
       module Syntax
-        def expose!(name, context = {})
+      end
+    end
+
+    module Middleware
+      def self.included(receiver)
+        receiver.send(:include, Syntax)
+      end
+
+      module Syntax
+        def use
+          # pending: inject middleware at any level
         end
       end
     end
 
-    [Domain, App].each do |dsl|
+    [Top, Domain, App].each do |dsl|
       dsl.send(:include, Common)
+      dsl.send(:include, Middleware)
     end
   end
 end

@@ -2,7 +2,7 @@ require 'ambi'
 
 module Ambi
   describe 'Ambi#parse!' do
-    subject { Ambi}
+    subject { Ambi }
 
     let!(:scope) { Scope.new(DSL::Top) }
 

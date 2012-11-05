@@ -11,13 +11,15 @@ module Ambi
       module Syntax
         def domain(name, &block)
           Ambi::Domain.register(name)
-          Scope.new(DSL::Domain, self).instance_eval(&block) if block_given?
+          scope = Scope.new(DSL::Domain, self)
+          scope.instance_eval(&block) if block_given?
         end
 
         def app(name, context = {}, &block)
           domain = context.delete(:domain)
           raise ArgumentError.new('must provide :domain option') unless domain
-          Scope.new(DSL::App, self).instance_eval(&block)
+          scope = Scope.new(DSL::App, self)
+          scope.instance_eval(&block) if block_given?
         end
       end
     end

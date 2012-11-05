@@ -2,13 +2,9 @@ require 'spec_helper'
 
 module Ambi
   module DSL
-    describe Top do
+    describe Domain do
       context 'quacking scope' do
-        subject { Scope.new(DSL::Top) }
-
-        it 'responds to #domain' do
-          subject.should respond_to(:domain)
-        end
+        subject { Scope.new(DSL::Domain) }
 
         it 'responds to #app' do
           subject.should respond_to(:app)

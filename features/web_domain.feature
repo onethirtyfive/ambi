@@ -25,7 +25,7 @@ Feature: Domain
     Given a domain "myblog.com"
     And a file "entries.rb" with:
     """
-      app :entries, domain: 'myblog.com' do
+      app :entries, domain: :'myblog.com' do
         expose! :index, via: :get
       end
     """
