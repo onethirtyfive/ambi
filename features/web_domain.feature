@@ -3,34 +3,27 @@ Feature: Domain
   As a developer
   I want to develop my domain
 
-  Scenario: Specifying a domain
-    Given a file "domain.rb" with:
-    """
+  Scenario: Naming a domain
+    Given a file containing:
+      """
       domain :'myblog.com'
-    """
-    When I parse it with:
-    """
-      source = File.read("domain.rb")
-      Ambi.parse!(source)
-    """
-    And I obtain a result with:
-    """
-      Ambi::Domain.all
-    """
-    Then result should be a hash with the following symbolized keys:
+      """
+    When Ambi parses the file into a Rack-compatible app
+    Then Ambi should be aware of the following domains:
       | domain     |
       | myblog.com |
 
   Scenario: Fleshing out a domain
-    Given a domain "myblog.com"
-    And a file "entries.rb" with:
-    """
-      app :entries, domain: :'myblog.com' do
-        expose! :index, via: :get
+    Given a file containing:
+      """
+      domain :'myblog.com' do
+        mount :entries, at: '/entries'
+
+        app :entries do
+          expose! :index, via: :get
+        end
       end
-    """
-    When I parse it with:
-    """
-      source = File.read("entries.rb")
-      Ambi.parse!(source)
-    """
+      """
+    When Ambi parses the file into a Rack-compatible app
+    And I visit "/entries" in domain "myblog.com"
+    Then the response status should be "200 OK"
