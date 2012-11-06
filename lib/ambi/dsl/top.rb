@@ -9,16 +9,20 @@ module Ambi
       end
 
       module Syntax
-        def domain(name, &block)
-          Ambi::Domain.register(name)
-          scope = Scope.new(DSL::Domain, self)
+        def domain(domain, &block)
+          Ambi::Domain.register(domain)
+
+          options = { domain: domain }
+          scope = Scope.new(DSL::Domain, { parent: self }.merge(options))
           scope.instance_eval(&block) if block_given?
         end
 
-        def app(name, context = {}, &block)
-          domain = context.delete(:domain)
+        def app(name, options = {}, &block)
+          domain = options[:domain]
           raise ArgumentError.new('must provide :domain option') unless domain
-          scope = Scope.new(DSL::App, self)
+
+          options = { domain: domain }
+          scope = Scope.new(DSL::App, { parent: self }.merge(options))
           scope.instance_eval(&block) if block_given?
         end
       end

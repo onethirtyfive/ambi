@@ -6,9 +6,9 @@ module Ambi
       end
 
       module Syntax
-        def app(name, context = {}, &block)
-          scope = Scope.new(DSL::App, self)
-          scope._domain = context.delete(:domain)
+        def app(app, &block)
+          options = { app: app }
+          scope = Scope.new(DSL::App, { parent: self }.merge(options))
           scope.instance_eval(&block) if block_given?
         end
       end

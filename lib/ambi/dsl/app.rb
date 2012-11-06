@@ -7,14 +7,14 @@ module Ambi
 
       module Syntax
         def at(relative_path_matcher, &block)
-          scope = Scope.new(dsl, self)
-          scope.relative_path_matcher = relative_path_matcher
+          options = { relative_path_matcher: relative_path_matcher }
+          scope = Scope.new(dsl, { parent: self }.merge(options))
           scope.instance_eval(&block) if block_given?
         end
 
         def via(*args, &block)
-          scope = Scope.new(dsl, self)
-          scope.request_methods = args
+          options = { request_methods: args }
+          scope = Scope.new(dsl, { parent: self }.merge(options))
           scope.instance_eval(&block) if block_given?
         end
 

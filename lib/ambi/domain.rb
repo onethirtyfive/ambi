@@ -11,7 +11,7 @@ module Ambi
 
       def register(name)
         name = name.to_sym
-        domains[name] = new unless domains.include?(name)
+        domains[name] ||= new
         domains[name]
       end
 

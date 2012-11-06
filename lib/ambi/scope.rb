@@ -4,53 +4,64 @@ module Ambi
   class Scope
     class NoDomainError < RuntimeError; end;
 
-    attr_reader   :dsl, :parent
-    attr_writer   :_domain, :app, :request_methods
-    attr_accessor :relative_path_matcher
+    attr_reader :dsl
 
-    def initialize(dsl, parent = nil)
-      @dsl    = dsl
-      @parent = parent
+    STATE = \
+      [:parent, :children, :domain, :app, :request_methods, :relative_path_matcher].freeze
+    STATE.each { |state| attr_reader "own_#{state}".to_sym }
 
+    def self.state
+      STATE
+    end
+
+    def initialize(dsl, options = {})
+      @dsl = dsl
       eigenclass = (class << self; self; end)
-      eigenclass.send(:include, @dsl)
-    end
+      eigenclass.send(:include, dsl)
 
-    def _domain
-      return @_domain unless @_domain.nil?
-
-      begin
-        parent._domain
-      rescue NameError
-        raise NoDomainError.new('domain must be specified separately or on app')
+      self.class.state.each do |state|
+        instance_variable_set "@own_#{state}".to_sym, options[state]
       end
+
+      (own_parent.own_children << self) unless own_parent.nil?
+
+      @own_children  ||= []
+      @request_methods = [@request_methods] if @request_method.kind_of?(Symbol)
     end
 
-    def request_methods
-      return @request_methods unless @request_methods.nil?
+    def derived_domain
+      return own_domain unless own_domain.nil?
 
-      begin
-        parent.request_methods
-      rescue NameError
-        []
+      if own_parent.nil?
+        raise NoDomainError.new(':domain must be defined standalone or on app')
       end
+
+      own_parent.derived_domain
     end
 
-    def request_method=(method)
-      self.request_methods = [method]
+    def derived_request_methods
+      return own_request_methods unless own_request_methods.nil?
+      own_parent.nil? ? [] : own_parent.derived_request_methods
     end
 
-    def path_matcher
-      parent_path_matcher =
-        begin
-          parent.path_matcher
-        rescue NameError
-          %r{/?}
-        end
-      return parent_path_matcher.to_s if relative_path_matcher.nil?
+    def derived_path_matcher
+      parent_derived_path_matcher = \
+        own_parent.nil? ? %r{/?} : own_parent.derived_path_matcher
 
-      components = [parent_path_matcher.to_s, relative_path_matcher.to_s]
+      return parent_derived_path_matcher.to_s if own_relative_path_matcher.nil?
+
+      components = \
+        [parent_derived_path_matcher.to_s, own_relative_path_matcher.to_s]
+
       Regexp.new(components.flatten.join)
+    end
+
+    def inspect
+      self.class.state.collect do |state|
+        state = "own_#{state}".to_sym
+        value = self.send(state)
+        "@#{state}=#{value}" if value
+      end.compact.join(',')
     end
   end
 end
