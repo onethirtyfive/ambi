@@ -3,11 +3,16 @@ require 'ambi/dsl'
 module Ambi
   class Scope
     class NoDomainError < RuntimeError; end;
+    class NoAppError    < RuntimeError; end;
 
     attr_reader :dsl
 
-    STATE = \
-      [:parent, :children, :domain, :app, :request_methods, :relative_path_matcher].freeze
+    STATE = [
+        :parent, :children,
+        :stack,
+        :domain, :app,
+        :request_methods, :relative_path_matcher
+      ].freeze
     STATE.each { |state| attr_reader "own_#{state}".to_sym }
 
     def self.state
@@ -33,10 +38,20 @@ module Ambi
       return own_domain unless own_domain.nil?
 
       if own_parent.nil?
-        raise NoDomainError.new(':domain must be defined standalone or on app')
+        raise NoDomainError.new(':domain must be defined standalone or in scope')
       end
 
       own_parent.derived_domain
+    end
+
+    def derived_app
+      return own_app unless own_app.nil?
+
+      if own_parent.nil?
+        raise NoAppError.new(':app must be defined standalone or in scope')
+      end
+
+      own_parent.derived_app
     end
 
     def derived_request_methods

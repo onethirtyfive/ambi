@@ -5,7 +5,13 @@ module Ambi
     let(:parent) { Scope.new(DSL::Domain) }
     let(:child)  { Scope.new(DSL::App, parent: parent) }
 
-    describe 'domain exposure via #own_domain/#derived_domain' do
+    describe 'domain via #own_domain/#derived_domain' do
+      it 'raises an error if neither explicitly set nor inherited' do
+        expect {
+          child.derived_domain
+        }.to raise_error(Scope::NoDomainError)
+      end
+
       it 'inherits if not explicitly set' do
         parent.instance_variable_set(:@own_domain, :'otherblog.org')
         child.derived_domain.should == :'otherblog.org'
@@ -15,6 +21,25 @@ module Ambi
         parent.instance_variable_set(:@own_domain, :'myblog.com')
         child.instance_variable_set(:@own_domain, :'otherblog.org')
         child.derived_domain.should == :'otherblog.org'
+      end
+    end
+
+    describe 'app via #own_app/#derived_app' do
+      it 'raises an error if neither explicitly set nor inherited' do
+        expect {
+          child.derived_app
+        }.to raise_error(Scope::NoAppError)
+      end
+
+      it 'inherits if not explicitly set' do
+        parent.instance_variable_set(:@own_app, :entries)
+        child.derived_app.should == :entries
+      end
+
+      it 'overrides if explicitly set' do
+        parent.instance_variable_set(:@own_app, :entries)
+        child.instance_variable_set(:@own_app, :comments)
+        child.derived_app.should == :comments
       end
     end
 
@@ -31,7 +56,7 @@ module Ambi
       end
     end
 
-    describe 'path matcher exposure via #own_relative_path_matcher/#derived_path_matcher' do
+    describe 'path matcher via #own_relative_path_matcher/#derived_path_matcher' do
       it 'accepts a string' do
         parent.instance_variable_set(:@own_relative_path_matcher, '/foo')
         parent.derived_path_matcher.should match('/foo')

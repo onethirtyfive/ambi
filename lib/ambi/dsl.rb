@@ -19,7 +19,7 @@ module Ambi
       end
 
       module Syntax
-        def use
+        def stack(&block)
           # pending: inject middleware at any level
         end
       end
