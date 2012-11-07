@@ -72,11 +72,13 @@ module Ambi
     end
 
     def inspect
-      self.class.state.collect do |state|
-        state = "own_#{state}".to_sym
-        value = self.send(state)
-        "@#{state}=#{value}" if value
-      end.compact.join(',')
+      instance_variables =
+        self.class.state.collect do |state|
+          state = "own_#{state}".to_sym
+          value = self.send(state)
+          "@#{state}=#{value}" if value
+        end
+      "#<Ambi::Scope: #{instance_variables.compact.join(',')}>"
     end
   end
 end

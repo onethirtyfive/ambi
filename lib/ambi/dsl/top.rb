@@ -10,8 +10,6 @@ module Ambi
 
       module Syntax
         def domain(domain, &block)
-          Ambi::Domain.register(domain)
-
           options = { domain: domain }
           scope = Scope.new(DSL::Domain, { parent: self }.merge(options))
           scope.instance_eval(&block) if block_given?

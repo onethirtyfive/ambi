@@ -18,6 +18,24 @@ module Ambi
           subject.should respond_to(:expose!)
         end
       end
+
+      describe 'domain-specific language' do
+        describe '#expose!' do
+          subject do
+            Scope.new(DSL::App, domain: :blog, app: :entries)
+          end
+
+          it 'adds a route record to the domain' do
+            expect {
+              subject.instance_eval do
+                expose! :index, via: :get, at: '/' do
+                  puts "hai"
+                end
+              end
+            }.to change(Ambi[:blog], :size)
+          end
+        end
+      end
     end
   end
 end

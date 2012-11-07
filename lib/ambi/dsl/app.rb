@@ -18,8 +18,10 @@ module Ambi
           scope.instance_eval(&block) if block_given?
         end
 
-        def expose!(name, context = {})
-          # pending implemenation: see spec
+        def expose!(name, options = {}, &block)
+          scope = Scope.new(DSL::Endpoint, options)
+          Ambi.register!(derived_domain)
+          Ambi[derived_domain] << Closure.new(scope, &block)
         end
       end
     end

@@ -2,8 +2,8 @@ require 'spec_helper'
 
 module Ambi
   module DSL
-    describe Common do
-      it 'specifies the universal DSL'
+    describe Middleware do
+      it 'specifies the middleware DSL'
     end
   end
 end
