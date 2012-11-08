@@ -1,3 +1,4 @@
+require 'rack/mount'
 require 'ambi/dsl'
 
 module Ambi
@@ -11,7 +12,7 @@ module Ambi
         :parent, :children,
         :stack,
         :domain, :app,
-        :request_methods, :relative_path_matcher
+        :request_methods, :relative_path, :relative_path_requirements
       ].freeze
     STATE.each { |state| attr_reader "own_#{state}".to_sym }
 
@@ -56,19 +57,34 @@ module Ambi
 
     def derived_request_methods
       return own_request_methods unless own_request_methods.nil?
-      own_parent.nil? ? [] : own_parent.derived_request_methods
+      own_parent.nil? ? (own_parent || []) : own_parent.derived_request_methods
     end
 
-    def derived_path_matcher
-      parent_derived_path_matcher = \
-        own_parent.nil? ? %r{/?} : own_parent.derived_path_matcher
+    def derived_path
+      parent_derived_path = \
+        own_parent.nil? ? '/' : own_parent.derived_path
 
-      return parent_derived_path_matcher.to_s if own_relative_path_matcher.nil?
+      c = [parent_derived_path, own_relative_path].compact.collect(&:to_str)
+      c.flatten.join.squeeze('/')
+    end
 
-      components = \
-        [parent_derived_path_matcher.to_s, own_relative_path_matcher.to_s]
+    def derived_path_requirements
+      parent_derived_path_requirements = \
+        own_parent.nil? ? {}
+                        : own_parent.derived_path_requirements
 
-      Regexp.new(components.flatten.join)
+      if own_relative_path_requirements.nil?
+        return parent_derived_path_requirements.to_hash
+      end
+
+      parent_derived_path_requirements.merge(own_relative_path_requirements || {})
+    end
+
+    def derived_stack(desired = nil, acc = [])
+      desired ||= dsl
+      own_parent.derived_stack(desired, acc) unless own_parent.nil?
+      acc.concat(own_stack || []) if desired == dsl
+      acc
     end
 
     def inspect

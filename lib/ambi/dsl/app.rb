@@ -6,8 +6,8 @@ module Ambi
       end
 
       module Syntax
-        def at(relative_path_matcher, &block)
-          options = { relative_path_matcher: relative_path_matcher }
+        def at(relative_path, &block)
+          options = { relative_path: relative_path }
           scope = Scope.new(dsl, { parent: self }.merge(options))
           scope.instance_eval(&block) if block_given?
         end

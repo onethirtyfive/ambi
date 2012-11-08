@@ -4,6 +4,22 @@ end
 
 module Ambi
   module DSL
+    module Routing
+      def self.included(receiver)
+        receiver.send(:include, Syntax)
+      end
+
+      module Syntax
+        def url(*args)
+          # pending: generate a url
+        end
+
+        def path(*args)
+          # pending: generate a relative path
+        end
+      end
+    end
+
     module Middleware
       def self.included(receiver)
         receiver.send(:include, Syntax)
@@ -17,6 +33,7 @@ module Ambi
     end
 
     [Domain, App, Closure].each do |dsl|
+      dsl.send(:include, Routing)
       dsl.send(:include, Middleware)
     end
   end
