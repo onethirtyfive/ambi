@@ -48,8 +48,8 @@ module Ambi
       end
     end
 
-    def derived_stack_for(level, acc = [])
-      own_parent.derived_stack_for(level, acc) unless own_parent.nil?
+    def stack_for(level, acc = [])
+      own_parent.stack_for(level, acc) unless own_parent.nil?
 
       case level
       when :domain; acc.concat(own_stack || []) if  own_parent.nil?
@@ -59,48 +59,48 @@ module Ambi
       acc
     end
 
-    def derived_domain
+    def domain
       return own_domain unless own_domain.nil?
 
       if own_parent.nil?
         raise NoDomainError.new(':domain must be defined standalone or in scope')
       end
 
-      own_parent.derived_domain
+      own_parent.domain
     end
 
-    def derived_app
+    def app
       return own_app unless own_app.nil?
 
       if own_parent.nil?
         raise NoAppError.new(':app must be defined standalone or in scope')
       end
 
-      own_parent.derived_app
+      own_parent.app
     end
 
-    def derived_request_methods
+    def request_methods
       return own_request_methods unless own_request_methods.nil?
-      own_parent.nil? ? (own_parent || []) : own_parent.derived_request_methods
+      own_parent.nil? ? (own_parent || []) : own_parent.request_methods
     end
 
-    def derived_path
-      parent_derived_path = own_parent.nil? ? '/' : own_parent.derived_path
+    def path
+      parent_path = own_parent.nil? ? '/' : own_parent.path
 
-      c = [parent_derived_path, own_relative_path].compact.collect(&:to_str)
+      c = [parent_path, own_relative_path].compact.collect(&:to_str)
       c.flatten.join.squeeze('/')
     end
 
-    def derived_path_requirements
-      parent_derived_path_requirements = \
+    def path_requirements
+      parent_path_requirements = \
         own_parent.nil? ? {}
-                        : own_parent.derived_path_requirements
+                        : own_parent.path_requirements
 
       if own_relative_path_requirements.nil?
-        return parent_derived_path_requirements.to_hash
+        return parent_path_requirements.to_hash
       end
 
-      parent_derived_path_requirements.merge(own_relative_path_requirements || {})
+      parent_path_requirements.merge(own_relative_path_requirements || {})
     end
 
     def inspect

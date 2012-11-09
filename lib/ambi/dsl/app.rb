@@ -21,7 +21,7 @@ module Ambi
         end
 
         def expose!(name, options = {}, &block)
-          Ambi[scope.derived_domain] << Exposure.new(scope, &block)
+          Ambi[scope.domain] << Exposure.new(scope, &block)
         end
       end
     end

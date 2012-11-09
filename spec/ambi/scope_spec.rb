@@ -6,7 +6,7 @@ module Ambi
     let(:child)      { Scope.new(parent: parent) }
     let(:grandchild) { Scope.new(parent: child)  }
 
-    describe 'middleware via #own_stack/#derived_stack_for' do
+    describe 'middleware via #own_stack/#stack_for' do
       let(:parent_stack)     { [[mock('middleware1')], [mock('middleware2')], [mock('middleware3')]] }
       let(:child_stack)      { [[mock('middleware4')], [mock('middleware5')], [mock('middleware6')]] }
       let(:grandchild_stack) { [[mock('middleware7')], [mock('middleware8')], [mock('middleware9')]] }
@@ -19,7 +19,7 @@ module Ambi
 
       it 'always builds the same domain stack' do
         [parent, child, grandchild].each do |scope|
-          scope.derived_stack_for(:domain).should == parent_stack
+          scope.stack_for(:domain).should == parent_stack
         end
       end
 
@@ -27,99 +27,99 @@ module Ambi
         # Grandchild and parent use DSL::App and DSL::Domain, respectively,
         # so their middleware stacks are kept separate.
         parent_stack.each do |middleware|
-          grandchild.derived_stack_for(:app).should_not include(middleware)
+          grandchild.stack_for(:app).should_not include(middleware)
         end
 
         (child_stack + grandchild_stack).each do |middleware|
-          parent.derived_stack_for(:domain).should_not include(middleware)
-          parent.derived_stack_for(:app).should_not include(middleware)
+          parent.stack_for(:domain).should_not include(middleware)
+          parent.stack_for(:app).should_not include(middleware)
         end
       end
     end
 
-    describe 'domain via #own_domain/#derived_domain' do
+    describe 'domain via #own_domain/#domain' do
       it 'raises an error if neither explicitly set nor inherited' do
         expect {
-          child.derived_domain
+          child.domain
         }.to raise_error(Scope::NoDomainError)
       end
 
       it 'inherits from parent scopes if not explicitly set' do
         parent.instance_variable_set(:@own_domain, :'otherblog.org')
-        child.derived_domain.should == :'otherblog.org'
+        child.domain.should == :'otherblog.org'
       end
 
       it 'overrides parent scopes if explicitly set' do
         parent.instance_variable_set(:@own_domain, :'myblog.com')
         child.instance_variable_set(:@own_domain, :'otherblog.org')
-        child.derived_domain.should == :'otherblog.org'
+        child.domain.should == :'otherblog.org'
       end
     end
 
-    describe 'app via #own_app/#derived_app' do
+    describe 'app via #own_app/#app' do
       it 'raises an error if neither explicitly set nor inherited' do
         expect {
-          child.derived_app
+          child.app
         }.to raise_error(Scope::NoAppError)
       end
 
       it 'inherits from parent scopes if not explicitly set' do
         parent.instance_variable_set(:@own_app, :entries)
-        child.derived_app.should == :entries
+        child.app.should == :entries
       end
 
       it 'overrides parent scopes if explicitly set' do
         parent.instance_variable_set(:@own_app, :entries)
         child.instance_variable_set(:@own_app, :comments)
-        child.derived_app.should == :comments
+        child.app.should == :comments
       end
     end
 
-    describe 'request method via #own_request_methods/#derived_request_methods' do
+    describe 'request method via #own_request_methods/#request_methods' do
       it 'inherits from parent scopes if not explicitly set' do
         parent.instance_variable_set(:@own_request_methods, [:get])
-        child.derived_request_methods.should == [:get]
+        child.request_methods.should == [:get]
       end
 
       it 'overrides parent scopes if explicitly set' do
         parent.instance_variable_set(:@own_request_methods, [:get])
         child.instance_variable_set(:@own_request_methods, [:post])
-        child.derived_request_methods.should == [:post]
+        child.request_methods.should == [:post]
       end
     end
 
-    describe 'path via #own_relative_path/#derived_path' do
+    describe 'path via #own_relative_path/#path' do
       it 'accepts a string' do
         parent.instance_variable_set(:@own_relative_path, '/foo')
-        parent.derived_path.should match('/foo')
+        parent.path.should match('/foo')
       end
 
       it 'defaults to an optional forward slash' do
-        parent.derived_path.should == '/'
+        parent.path.should == '/'
       end
 
       it 'builds recursively from parent scopes (by appending)' do
         parent.instance_variable_set(:@own_relative_path, '/foo')
         child.instance_variable_set(:@own_relative_path, '/bar')
-        child.derived_path.should == '/foo/bar'
+        child.path.should == '/foo/bar'
       end
     end
 
-    describe 'path constraints via #own_relative_path_requirements/#derived_path_requirements' do
+    describe 'path constraints via #own_relative_path_requirements/#path_requirements' do
       let(:requirements) do
         { foo: /bar/ }
       end
 
       it 'accepts a hash' do
         parent.instance_variable_set(:@own_relative_path_requirements, requirements)
-        parent.derived_path_requirements.should == requirements
+        parent.path_requirements.should == requirements
       end
 
       it 'builds recursively from parent scopes (by per-requirement override)' do
         parent.instance_variable_set(:@own_relative_path_requirements, { foo: /bar/ })
         child.instance_variable_set(:@own_relative_path_requirements, { baz: /bat/ })
         grandchild.instance_variable_set(:@own_relative_path_requirements, { a: /b/ })
-        grandchild.derived_path_requirements.should == { foo: /bar/, baz: /bat/, a: /b/ }
+        grandchild.path_requirements.should == { foo: /bar/, baz: /bat/, a: /b/ }
       end
     end
   end

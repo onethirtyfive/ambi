@@ -10,7 +10,7 @@ module Ambi
     end
 
     def to_app
-      scope.derived_stack_for(:app)
+      scope.stack_for(:app)
     end
   end
 end
