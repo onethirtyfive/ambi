@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 module Ambi
-  describe Closure do
+  describe Exposure do
     let(:no_op) do
       -> {}
     end
@@ -9,14 +9,13 @@ module Ambi
     describe 'initialization' do
       it 'raises ArgumentError with a nil scope' do
         expect {
-          Closure.new(nil, &no_op)
+          Exposure.new(nil, &no_op)
         }.to raise_error(ArgumentError)
       end
 
       it 'raises ArgumentError without a block' do
         expect {
-          scope = Scope.new(DSL::Endpoint)
-          Closure.new(scope)
+          Exposure.new(Scope.new)
         }.to raise_error(ArgumentError)
       end
     end
@@ -24,7 +23,7 @@ module Ambi
     describe '#to_app' do
       let(:scope) { Scope.new(DSL::Endpoint) }
 
-      it 'uses derived middleware stack'
+      it 'uses derived stack'
     end
   end
 end

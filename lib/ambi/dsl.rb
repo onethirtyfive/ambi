@@ -32,7 +32,7 @@ module Ambi
       end
     end
 
-    [Domain, App, Closure].each do |dsl|
+    [Domain, App, Endpoint].each do |dsl|
       dsl.send(:include, Routing)
       dsl.send(:include, Middleware)
     end

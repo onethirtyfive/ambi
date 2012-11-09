@@ -1,4 +1,3 @@
-require 'rack/mount'
 require 'ambi/dsl'
 
 module Ambi
@@ -6,33 +5,58 @@ module Ambi
     class NoDomainError < RuntimeError; end;
     class NoAppError    < RuntimeError; end;
 
-    attr_reader :dsl
+    class CleanRoom < BasicObject
+      attr_reader :scope
+
+      def initialize(scope, dsl)
+        @scope = scope
+        eigenclass = (class << self; self; end)
+        eigenclass.send(:include, dsl)
+      end
+    end
 
     STATE = [
-        :parent, :children,
-        :stack,
-        :domain, :app,
-        :request_methods, :relative_path, :relative_path_requirements
-      ].freeze
-    STATE.each { |state| attr_reader "own_#{state}".to_sym }
+      :parent, :children, :stack,
+      :domain, :app, :exposures,
+      :request_methods, :relative_path, :relative_path_requirements
+    ].freeze
 
     def self.state
       STATE
     end
 
-    def initialize(dsl, options = {})
-      @dsl = dsl
-      eigenclass = (class << self; self; end)
-      eigenclass.send(:include, dsl)
-
+    def initialize(options = {})
       self.class.state.each do |state|
         instance_variable_set "@own_#{state}".to_sym, options[state]
       end
 
-      (own_parent.own_children << self) unless own_parent.nil?
+      (@own_parent.own_children << self) unless @own_parent.nil?
 
       @own_children  ||= []
       @request_methods = [@request_methods] if @request_method.kind_of?(Symbol)
+    end
+
+    def clean_room_eval(dsl, source = nil, &block)
+      clean_room = CleanRoom.new(self, dsl)
+      if block_given?
+        clean_room.instance_eval(&block)
+      else
+        unless source.respond_to?(:to_str)
+          raise '#clean_room_eval requires either a block, or #to_str'
+        end
+        clean_room.instance_eval(source.to_str)
+      end
+    end
+
+    def derived_stack_for(level, acc = [])
+      own_parent.derived_stack_for(level, acc) unless own_parent.nil?
+
+      case level
+      when :domain; acc.concat(own_stack || []) if  own_parent.nil?
+      when :app;    acc.concat(own_stack || []) if !own_parent.nil?
+      end
+
+      acc
     end
 
     def derived_domain
@@ -61,8 +85,7 @@ module Ambi
     end
 
     def derived_path
-      parent_derived_path = \
-        own_parent.nil? ? '/' : own_parent.derived_path
+      parent_derived_path = own_parent.nil? ? '/' : own_parent.derived_path
 
       c = [parent_derived_path, own_relative_path].compact.collect(&:to_str)
       c.flatten.join.squeeze('/')
@@ -80,13 +103,6 @@ module Ambi
       parent_derived_path_requirements.merge(own_relative_path_requirements || {})
     end
 
-    def derived_stack(desired = nil, acc = [])
-      desired ||= dsl
-      own_parent.derived_stack(desired, acc) unless own_parent.nil?
-      acc.concat(own_stack || []) if desired == dsl
-      acc
-    end
-
     def inspect
       instance_variables =
         self.class.state.collect do |state|
@@ -96,5 +112,9 @@ module Ambi
         end
       "#<Ambi::Scope: #{instance_variables.compact.join(',')}>"
     end
+
+    protected
+
+    state.each { |state| attr_reader "own_#{state}".to_sym }
   end
 end

@@ -1,5 +1,5 @@
 module Ambi
-  class Closure
+  class Exposure
     attr_reader :scope, :block
 
     def initialize(scope, &block)
@@ -10,7 +10,7 @@ module Ambi
     end
 
     def to_app
-      scope.derived_stack
+      scope.derived_stack_for(:app)
     end
   end
 end

@@ -7,9 +7,7 @@ Feature: Domain
     Given a file containing:
       """
       domain :'myblog.com' do
-        mount :entries, at: '/entries'
-
-        app :entries do
+        app :entries, at: '/entries' do
           expose! :index, via: :get do
             # do nothing
           end

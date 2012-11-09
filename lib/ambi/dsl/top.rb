@@ -10,18 +10,20 @@ module Ambi
 
       module Syntax
         def domain(domain, &block)
-          options = { domain: domain }
-          scope = Scope.new(DSL::Domain, { parent: self }.merge(options))
-          scope.instance_eval(&block) if block_given?
+          if Kernel.block_given?
+            options = { parent: scope, domain: domain }
+            Scope.new(options).clean_room_eval(DSL::Domain, &block)
+          end
         end
 
         def app(name, options = {}, &block)
           domain = options[:domain]
           raise ArgumentError.new('must provide :domain option') unless domain
 
-          options = { domain: domain }
-          scope = Scope.new(DSL::App, { parent: self }.merge(options))
-          scope.instance_eval(&block) if block_given?
+          if Kernel.block_given?
+            options = { parent: scope, domain: domain }
+            Scope.new(options).clean_room_eval(DSL::App, &block)
+          end
         end
       end
     end

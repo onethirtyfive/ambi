@@ -6,13 +6,11 @@ module Ambi
       end
 
       module Syntax
-        def mount(app, options = {})
-        end
-
         def app(app, options = {}, &block)
-          options = { app: app }
-          scope = Scope.new(DSL::App, { parent: self }.merge(options))
-          scope.instance_eval(&block) if block_given?
+          if Kernel.block_given?
+            options = { parent: scope, app: app }
+            Scope.new(options).clean_room_eval(DSL::App, &block)
+          end
         end
       end
     end

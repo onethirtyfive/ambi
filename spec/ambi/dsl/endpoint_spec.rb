@@ -1,7 +1,8 @@
+require 'spec_helper'
+
 module Ambi
   module DSL
     describe Endpoint do
-      it 'specifies the endpoint DSL'
     end
   end
 end

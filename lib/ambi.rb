@@ -3,7 +3,7 @@ Dir[File.dirname(__FILE__) + '/ambi/*.rb'].each { |file| require file }
 module Ambi
   class << self
     def parse!(source)
-      Scope.new(DSL::Top).instance_eval(source)
+      Scope.new.clean_room_eval(DSL::Top, source)
     end
 
     def reset!
@@ -15,6 +15,16 @@ module Ambi
       domains[domain]
     end
     alias [] register!
+
+    def registered?(domain)
+      domains.has_key?(domain)
+    end
+
+    def build(domain, location = '/')
+      Builder.new(self[domain], location).to_app
+    end
+
+    private
 
     def domains
       reset! unless @domains

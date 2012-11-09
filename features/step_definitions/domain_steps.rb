@@ -7,5 +7,7 @@ When /^I parse the file with Ambi$/ do
 end
 
 Then /^Ambi should be aware of the following domains:$/ do |table|
-  table.rows.collect(&:first).collect(&:to_sym).sort.should == Ambi.domains.keys.sort
+  table.rows.collect(&:first).collect(&:to_sym).each do |domain|
+    Ambi.registered?(domain).should be_true
+  end
 end

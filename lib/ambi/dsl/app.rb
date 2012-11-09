@@ -6,22 +6,22 @@ module Ambi
       end
 
       module Syntax
-        def at(relative_path, &block)
-          options = { relative_path: relative_path }
-          scope = Scope.new(dsl, { parent: self }.merge(options))
-          scope.instance_eval(&block) if block_given?
+        def via(*args, &block)
+          if Kernel.block_given?
+            options = { parent: scope, request_methods: args }
+            Scope.new(options).clean_room_eval(DSL::App, &block)
+          end
         end
 
-        def via(*args, &block)
-          options = { request_methods: args }
-          scope = Scope.new(dsl, { parent: self }.merge(options))
-          scope.instance_eval(&block) if block_given?
+        def at(relative_path, &block)
+          if Kernel.block_given?
+            options = { parent: scope, relative_path: relative_path }
+            Scope.new(options).clean_room_eval(DSL::App, &block)
+          end
         end
 
         def expose!(name, options = {}, &block)
-          scope = Scope.new(DSL::Endpoint, options)
-          Ambi.register!(derived_domain)
-          Ambi[derived_domain] << Closure.new(scope, &block)
+          Ambi[scope.derived_domain] << Exposure.new(scope, &block)
         end
       end
     end
