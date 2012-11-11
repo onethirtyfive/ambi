@@ -8,21 +8,17 @@ Feature: Domain
       """
       domain :'myblog.com' do
         app :entries, at: '/entries' do
-          expose! :index, via: :get do
-            # do nothing
-          end
+          expose :index,  via: :get
+          expose :show,   via: :show, at: '/:id'
+          expose :create, via: :post
         end
       end
       """
 
   Scenario: Naming a domain
-    When I parse the file with Ambi
-    Then Ambi should be aware of the following domains:
-      | domain     |
-      | myblog.com |
-
-  Scenario: Fleshing out a domain
-    When I parse the file with Ambi
-    And I tell Ambi to build "myblog.com"
-    And I visit "/entries"
-    Then the response status should be "200 OK"
+    When I call Ambi#parse, passing the file's contents
+    And I call Ambi::Build#new, passing the result of Ambi#parse
+    Then the resulting Build should have the following attributes:
+      | attribute | value         |
+      | domain    | :'myblog'.com |
+      | apps      | [:entries]    |

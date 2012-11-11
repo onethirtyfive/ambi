@@ -2,9 +2,26 @@ require 'spec_helper'
 
 module Ambi
   describe Scope do 
-    let(:parent)     { Scope.new }
-    let(:child)      { Scope.new(parent: parent) }
-    let(:grandchild) { Scope.new(parent: child)  }
+    let(:parent)     { Scope.new(DSL::Domain) }
+    let(:child)      { Scope.new(DSL::App, parent: parent) }
+    let(:grandchild) { Scope.new(DSL::App, parent: child)  }
+
+    describe '#initialize' do
+      let(:children) { SortedSet.new }
+
+      it "replaces the parent's children with a new set including itself" do
+        expect {
+          child
+        }.to change(parent, :children)
+      end
+
+      it 'evaluates any provided block in instance context' do
+        Scope.any_instance.should_receive(:rock_the_suburbs!).once
+        Scope.new(DSL::App) do
+          rock_the_suburbs!
+        end
+      end
+    end
 
     describe 'middleware via #own_stack/#stack_for' do
       let(:parent_stack)     { [[mock('middleware1')], [mock('middleware2')], [mock('middleware3')]] }

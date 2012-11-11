@@ -9,19 +9,20 @@ module Ambi
         def via(*args, &block)
           if Kernel.block_given?
             options = { parent: scope, request_methods: args }
-            Scope.new(options).clean_room_eval(DSL::App, &block)
+            Scope.new(DSL::App, options) { clean_room_eval(&block) }
           end
         end
 
         def at(relative_path, &block)
           if Kernel.block_given?
-            options = { parent: scope, relative_path: relative_path }
-            Scope.new(options).clean_room_eval(DSL::App, &block)
+            options = { parent: scope, at: relative_path }
+            Scope.new(DSL::App, options) { clean_room_eval(&block) }
           end
         end
 
-        def expose!(name, options = {}, &block)
-          Ambi[scope.domain] << Exposure.new(scope, &block)
+        def expose(name, options = {}, &block)
+          options = options.merge({ parent: scope })
+          Scope.new(DSL::Endpoint, options) { clean_room_eval(&block) }
         end
       end
     end
