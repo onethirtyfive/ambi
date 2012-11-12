@@ -1,4 +1,4 @@
-require 'ambi'
+require 'spec_helper'
 
 module Ambi
   describe 'Ambi#parse' do
@@ -43,7 +43,7 @@ module Ambi
           source = <<-EOV
             app :entries, domain: :'myblog.com' do
               via :get do
-                at('/') { route! :index}
+                at('/') { route! :index }
               end
             end
           EOV
