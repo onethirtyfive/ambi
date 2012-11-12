@@ -7,18 +7,19 @@ Feature: Domain
     Given a file containing:
       """
       domain :'myblog.com' do
-        app :entries, at: '/entries' do
-          expose :index,  via: :get
-          expose :show,   via: :show, at: '/:id'
-          expose :create, via: :post
+        app :entries do
+          given(via: :get) do
+            at('/')    { route! :index }
+            at('/:id') { route! :show  }
+          end
         end
       end
       """
 
-  Scenario: Naming a domain
+  Scenario: Reviewing a domain
     When I call Ambi#parse, passing the file's contents
-    And I call Ambi::Build#new, passing the result of Ambi#parse
-    Then the resulting Build should have the following attributes:
+    And I access the resulting build for ":'myblog.com'" via Ambi#[]
+    Then the resulting build should have the following attributes:
       | attribute | value         |
       | domain    | :'myblog'.com |
       | apps      | [:entries]    |

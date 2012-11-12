@@ -8,7 +8,7 @@ module Ambi
       module Syntax
         def app(app, options = {}, &block)
           if Kernel.block_given?
-            options = options.merge({ parent: scope, app: app })
+            options = options.merge(parent: scope, app: app)
             Scope.new(DSL::App, options) { clean_room_eval(&block) }
           end
         end

@@ -2,10 +2,6 @@ require 'ambi/dsl'
 require 'set'
 
 module Ambi
-  # Developer note:
-  # Scopes are completely immutable except for #children, a SortedSet added to
-  # by a child scope when instantiated. Members of #children are sorted by
-  # criteria specified in the class method with the same name.
   class Scope
     class NoDomainError < RuntimeError; end;
     class NoAppError    < RuntimeError; end;
@@ -21,26 +17,26 @@ module Ambi
     end
 
     class << self
+      def dsls
+        @dsls ||= [DSL::Endpoint, DSL::App, DSL::Domain].freeze
+      end
+
+      def levels
+        @levels ||= [:endpoint, :app, :domain].freeze
+      end
+
       def state
         @state ||= [
           :stack,
           :domain, :app,
-          :request_methods, :relative_path, :relative_path_requirements
+          :name, :request_methods, :relative_path, :relative_path_requirements
         ].freeze
-      end
-
-      def criteria
-        @criteria ||= [:path, :request_methods, :path_requirements].freeze
       end
     end
 
     def initialize(dsl, options = {}, &block)
-      @dsl      = dsl
-      @parent   = options[:parent]
-      @children = SortedSet.new
-      unless parent.nil?
-        parent.children = SortedSet.new(parent.children.to_a + [self])
-      end
+      @dsl    = dsl
+      @parent = options[:parent]
 
       @own_request_methods            = options[:via]
       @own_relative_path              = options[:at]
@@ -60,20 +56,21 @@ module Ambi
       self
     end
 
-    def clean_room_eval(source = nil, &block)
+    def clean_room_parse(source)
       clean_room = CleanRoom.new(self, dsl)
-      if block_given?
-        clean_room.instance_eval(&block)
-      elsif source
-        unless source.respond_to?(:to_str)
-          raise '#clean_room_eval requires either a block or #to_str'
-        end
-        clean_room.instance_eval(source.to_str)
+      unless source.respond_to?(:to_str)
+        raise '#clean_room_eval requires either a block or #to_str'
       end
+      clean_room.instance_eval(source.to_str)
     end
 
-    def stack_for(level, acc = [])
-      parent.stack_for(level, acc) unless parent.nil?
+    def clean_room_eval(&block)
+      clean_room = CleanRoom.new(self, dsl)
+      clean_room.instance_eval(&block) # if block_given?
+    end
+
+    def stack(level, acc = [])
+      parent.stack(level, acc) unless no_parent?
 
       case level
       when :domain;   acc.concat(own_stack || []) if dsl == DSL::Domain
@@ -87,7 +84,7 @@ module Ambi
     def domain
       return own_domain unless own_domain.nil?
 
-      if parent.nil?
+      if no_parent?
         raise NoDomainError.new(':domain must be defined standalone or in scope')
       end
 
@@ -97,20 +94,29 @@ module Ambi
     def app
       return own_app unless own_app.nil?
 
-      if parent.nil?
+      if no_parent?
         raise NoAppError.new(':app must be defined standalone or in scope')
       end
 
       parent.app
     end
 
+    def name(level = :domain, acc = [])
+      parent.name(level, acc) unless no_parent?
+
+      eligible_dsls = self.class.dsls[0..self.class.levels.index(level)]
+      acc << own_name if own_name && eligible_dsls.include?(dsl)
+
+      acc
+    end
+
     def request_methods
       return own_request_methods unless own_request_methods.nil?
-      parent.nil? ? (parent || []) : parent.request_methods
+      no_parent? ? (parent || []) : parent.request_methods
     end
 
     def path
-      parent_path = parent.nil? ? '/' : parent.path
+      parent_path = no_parent? ? '/' : parent.path
 
       c = [parent_path, own_relative_path].compact.collect(&:to_str)
       c.flatten.join.squeeze('/')
@@ -118,7 +124,7 @@ module Ambi
 
     def path_requirements
       parent_path_requirements = \
-        parent.nil? ? {} : parent.path_requirements
+        no_parent? ? {} : parent.path_requirements
 
       if own_relative_path_requirements.nil?
         return parent_path_requirements.to_hash
@@ -137,20 +143,13 @@ module Ambi
       "#<Ambi::Scope: #{instance_variables.compact.join(',')}>"
     end
 
-    def <=>(other)
-      self.criteria <=> other.criteria
-    end
-
     protected
 
-    def criteria
-      @criteria = self.class.criteria.collect do |criterion|
-        send criterion
-      end
-    end
+    attr_reader :dsl, :parent
 
-    attr_reader   :dsl, :parent
-    attr_accessor :children
+    def no_parent?
+      parent.nil?
+    end
 
     state.each { |state| attr_reader "own_#{state}".to_sym }
   end
