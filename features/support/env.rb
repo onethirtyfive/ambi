@@ -5,18 +5,7 @@ require 'ambi'
 
 ENV['RACK_ENV'] = 'test'
 
-module Support
-  module Rack
-    module Test
-      def app=(app)
-        @app = app
-      end
-
-      def app
-        @app
-      end
-    end
-  end
+here = File.dirname(__FILE__)
+Dir[File.expand_path(here + "/support/**/*.rb")].each do |support_file|
+  require support_file
 end
-
-World(Support::Rack::Test)
