@@ -16,10 +16,7 @@ Feature: Domain
       end
       """
 
-  Scenario: Reviewing a domain
+  Scenario: Defining a (tiny) domain
     When I call Ambi#parse, passing the file's contents
-    And I access the resulting build for ":'myblog.com'" via Ambi#[]
-    Then the resulting build should have the following attributes:
-      | attribute | value         |
-      | domain    | :'myblog'.com |
-      | apps      | [:entries]    |
+    And I access the resulting build for :'myblog.com' via Ambi#[]
+    Then the resulting build should have 2 routes
