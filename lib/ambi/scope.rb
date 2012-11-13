@@ -1,5 +1,6 @@
 require 'ambi/dsl'
 require 'set'
+require 'active_support/core_ext/string'
 
 module Ambi
   class Scope
@@ -38,7 +39,9 @@ module Ambi
       @dsl    = dsl
       @parent = options[:parent]
 
-      @own_request_methods            = options[:via]
+      via = options[:via]
+
+      @own_request_methods            = via.kind_of?(Symbol) ? [via] : via
       @own_relative_path              = options[:at]
       @own_relative_path_requirements = options[:requirements]
 
@@ -48,8 +51,6 @@ module Ambi
       auto.each do |state|
         instance_variable_set "@own_#{state}".to_sym, options[state]
       end
-
-      @request_methods = [@request_methods] if @request_method.kind_of?(Symbol)
 
       instance_eval(&block) if block_given?
 
@@ -72,10 +73,8 @@ module Ambi
     def stack(level, acc = [])
       parent.stack(level, acc) unless no_parent?
 
-      case level
-      when :domain;   acc.concat(own_stack || []) if dsl == DSL::Domain
-      when :app;      acc.concat(own_stack || []) if dsl == DSL::App
-      when :endpoint; acc.concat(own_stack || []) if dsl == DSL::Endpoint
+      if (dsl == "Ambi::DSL::#{level.to_s.camelize}".constantize)
+        acc.concat(own_stack || [])
       end
 
       acc
