@@ -46,6 +46,15 @@ module Ambi
       end
     end
 
+    describe 'mounts via #own_mounts/#mounts' do
+      let(:mounts) { ['/entries', '/elsewhere'] }
+
+      it 'inherits from domain scope' do
+        domain_scope.instance_variable_set(:@own_mounts, mounts)
+        endpoint_scope.mounts.should == mounts
+      end
+    end
+
     describe 'domain via #own_domain/#domain' do
       it 'raises an error if neither explicitly set nor inherited' do
         expect {

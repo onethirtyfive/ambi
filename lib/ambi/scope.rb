@@ -28,7 +28,7 @@ module Ambi
 
       def state
         @state ||= [
-          :stack,
+          :stack, :mounts,
           :domain, :app,
           :name, :request_methods, :relative_path, :relative_path_requirements
         ].freeze
@@ -39,11 +39,13 @@ module Ambi
       @dsl    = dsl
       @parent = options[:parent]
 
-      via = options[:via]
+      via, mounts = options.values_at(:via, :mounts)
 
       @own_request_methods            = via.kind_of?(Symbol) ? [via] : via
       @own_relative_path              = options[:at]
       @own_relative_path_requirements = options[:requirements]
+
+      @own_mounts = mounts.respond_to?(:to_str) ? [mounts] : mounts
 
       auto = self.class.state - \
         [:request_methods, :relative_path, :relative_path_requirements]
@@ -78,6 +80,10 @@ module Ambi
       end
 
       acc
+    end
+
+    def mounts
+      no_parent? ? own_mounts : parent.mounts
     end
 
     def domain

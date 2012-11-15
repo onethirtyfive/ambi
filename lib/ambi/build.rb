@@ -14,7 +14,7 @@ module Ambi
 
     def to_app
       # Stub for duck-type check
-      -> {}
+      -> env { [404, { 'Content-Type' => 'text/plain' }, ['Not Found']] }
     end
   end
 end

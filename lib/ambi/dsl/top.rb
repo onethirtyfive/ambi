@@ -15,18 +15,6 @@ module Ambi
             Scope.new(DSL::Domain, options) { clean_room_eval(&block) }
           end
         end
-
-        def app(name, options = {}, &block)
-          domain = options[:domain]
-          if domain.nil?
-            Kernel.raise ArgumentError.new('must provide :domain option')
-          end
-
-          if Kernel.block_given?
-            options = options.merge(app: name, parent: scope, domain: domain)
-            Scope.new(DSL::App, options) { clean_room_eval(&block) }
-          end
-        end
       end
     end
   end

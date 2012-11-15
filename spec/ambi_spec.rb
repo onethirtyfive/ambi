@@ -27,7 +27,7 @@ module Ambi
     describe '#parse' do
       def eval_source!
         source = <<-EOV
-          domain 'myblog.com'
+          domain :'myblog.com'
         EOV
         subject.parse(source)
       end
@@ -41,9 +41,11 @@ module Ambi
         eval_source!
         expect {
           source = <<-EOV
-            app :entries, domain: :'myblog.com' do
-              via :get do
-                at('/') { route! :index }
+            domain :'myblog.com' do
+              mount :entries, domain: :'myblog.com', at: '/entries' do
+                via :get do
+                  at('/') { route! :index }
+                end
               end
             end
           EOV
@@ -55,7 +57,9 @@ module Ambi
     describe '#eval' do
       def within_entries_app(&block)
         Ambi.eval do
-          app(:entries, domain: :'myblog.com', &block)
+          domain :'myblog.com' do
+            mount(:entries, at: '/entries', &block)
+          end
         end
       end
 

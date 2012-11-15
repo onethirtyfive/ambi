@@ -15,12 +15,16 @@ module Ambi
           :stack, :domain, :app
         ] + criteria).freeze
       end
+
+      def not_implemented
+        [405, { 'Content-Type' => 'text/plain' }, ['Not Implemented']]
+      end
     end
 
     def initialize(scope, name, &block)
       @scope = scope
       @name  = name
-      @block = block
+      @block = block_given? ? block : self.class.not_implemented
     end
 
     delegate *delegatees, :to => :scope
