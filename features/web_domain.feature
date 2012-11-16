@@ -8,7 +8,7 @@ Feature: Domain
       """
       domain :'myblog.com' do
         mount :entries, at: '/entries' do
-          given(via: :get) do
+          via :get do
             at('/')    { route! :index }
             at('/:id') { route! :show  }
           end
