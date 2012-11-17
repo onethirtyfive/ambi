@@ -11,7 +11,7 @@ module Ambi
         it 'creates a new scope with the provided app name' do
           options = { parent: scope, app: :entries, mounts: '/entries' }
           Scope.should_receive(:new).once.with(App, options)
-          clean_room.mount(:entries, at: '/entries') {}
+          clean_room.mounting(:entries, on: '/entries') {}
         end
       end
     end

@@ -7,7 +7,7 @@ Feature: Domain
     Given a domain definition:
       """
       domain :'myblog.com' do
-        mount :entries, at: '/entries' do
+        mounting :entries, on: '/entries' do
           via :get do
             at('/')    { route! :index }
             at('/:id') { route! :show  }

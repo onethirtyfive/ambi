@@ -42,7 +42,7 @@ module Ambi
         expect {
           source = <<-EOV
             domain :'myblog.com' do
-              mount :entries, domain: :'myblog.com', at: '/entries' do
+              mounting :entries, on: '/entries' do
                 via :get do
                   at('/') { route! :index }
                 end
@@ -58,7 +58,7 @@ module Ambi
       def within_entries_app(&block)
         Ambi.eval do
           domain :'myblog.com' do
-            mount(:entries, at: '/entries', &block)
+            mounting(:entries, on: '/entries', &block)
           end
         end
       end
