@@ -33,25 +33,35 @@ module Ambi
           :name, :request_methods, :relative_path, :relative_path_requirements
         ].freeze
       end
+
+      def auto_assign
+        @auto_assign ||= state - \
+          [:request_methods, :relative_path, :relative_path_requirements]
+      end
+
+      def normalize_request_methods(via)
+        via.kind_of?(Symbol) ? [via] : via
+      end
+
+      def normalize_mounts(mounts)  
+        mounts.respond_to?(:to_str) ? [mounts] : mounts
+      end
     end
 
     def initialize(dsl, options = {}, &block)
-      @dsl    = dsl
-      @parent = options[:parent]
+      @dsl = dsl
 
-      via, mounts = options.values_at(:via, :mounts)
+      parent, mounts, via, at, requirements = \
+        options.values_at(:parent, :mounts, :via, :at, :requirements)
 
-      @own_request_methods            = via.kind_of?(Symbol) ? [via] : via
-      @own_relative_path              = options[:at]
-      @own_relative_path_requirements = options[:requirements]
-
-      @own_mounts = mounts.respond_to?(:to_str) ? [mounts] : mounts
-
-      auto = self.class.state - \
-        [:request_methods, :relative_path, :relative_path_requirements]
-
-      auto.each do |state|
-        instance_variable_set "@own_#{state}".to_sym, options[state]
+      @parent                         = parent
+      @own_mounts                     = Scope.normalize_mounts(mounts)
+      @own_request_methods            = Scope.normalize_request_methods(via)
+      @own_relative_path              = at 
+      @own_relative_path_requirements = requirements
+      
+      Scope.auto_assign.each do |assign|
+        instance_variable_set("@own_#{assign}".to_sym, options[assign])
       end
 
       instance_eval(&block) if block_given?
@@ -70,16 +80,6 @@ module Ambi
     def clean_room_eval(&block)
       clean_room = CleanRoom.new(self, dsl)
       clean_room.instance_eval(&block) # if block_given?
-    end
-
-    def stack(level, acc = [])
-      parent.stack(level, acc) unless no_parent?
-
-      if (dsl == "Ambi::DSL::#{level.to_s.camelize}".constantize)
-        acc.concat(own_stack || [])
-      end
-
-      acc
     end
 
     def mounts
@@ -113,6 +113,18 @@ module Ambi
       acc << own_name if own_name && eligible_dsls.include?(dsl)
 
       acc
+    end
+
+    def domain_stack
+      stack(:domain)
+    end
+
+    def app_stack
+      stack(:app)
+    end
+
+    def endpoint_stack
+      stack(:endpoint)
     end
 
     def request_methods
@@ -154,6 +166,16 @@ module Ambi
 
     def no_parent?
       parent.nil?
+    end
+
+    def stack(level, acc = [])
+      parent.stack(level, acc) unless no_parent?
+
+      if (dsl == "Ambi::DSL::#{level.to_s.camelize}".constantize)
+        acc.concat(own_stack || [])
+      end
+
+      acc
     end
 
     state.each { |state| attr_reader "own_#{state}".to_sym }

@@ -12,7 +12,7 @@ module Ambi
 
       def delegatees
         @delegatees ||= ([
-          :stack, :domain, :app
+          :domain, :app, :domain_stack, :app_stack, :endpoint_stack
         ] + criteria).freeze
       end
 

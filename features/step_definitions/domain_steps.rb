@@ -11,7 +11,7 @@ When /^I access the new (.*) build via Ambi\#\[\]$/ do |domain|
 end
 
 Then /^it should have (\d+) routes$/ do |count|
-  @build.routes.count.should == count.to_i
+  @build.route_set.size.should == count.to_i
 end
 
 When /^I call \#to_app on the resulting build for (.*)$/ do |domain|

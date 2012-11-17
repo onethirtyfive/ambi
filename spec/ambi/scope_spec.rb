@@ -28,7 +28,7 @@ module Ambi
 
       it 'always builds the same domain stack' do
         [domain_scope, app_scope, endpoint_scope].each do |scope|
-          scope.stack(:domain).should == domain_scope_stack
+          scope.domain_stack.should == domain_scope_stack
         end
       end
 
@@ -36,12 +36,12 @@ module Ambi
         # Grandchild and parent use DSL::App and DSL::Domain, respectively,
         # so their middleware stacks are kept separate.
         domain_scope_stack.each do |middleware|
-          endpoint_scope.stack(:app).should_not include(middleware)
+          endpoint_scope.app_stack.should_not include(middleware)
         end
 
         (app_scope_stack + endpoint_stack).each do |middleware|
-          domain_scope.stack(:domain).should_not include(middleware)
-          domain_scope.stack(:app).should_not include(middleware)
+          domain_scope.domain_stack.should_not include(middleware)
+          domain_scope.app_stack.should_not include(middleware)
         end
       end
     end
