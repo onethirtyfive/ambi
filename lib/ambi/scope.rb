@@ -1,21 +1,10 @@
 require 'ambi/dsl'
-require 'set'
 require 'active_support/core_ext/string'
 
 module Ambi
   class Scope
     class NoDomainError < RuntimeError; end;
     class NoAppError    < RuntimeError; end;
-
-    class CleanRoom < BasicObject
-      attr_reader :scope
-
-      def initialize(scope, dsl)
-        @scope = scope
-        eigenclass = (class << self; self; end)
-        eigenclass.send(:include, dsl)
-      end
-    end
 
     class << self
       def dsls
@@ -28,7 +17,7 @@ module Ambi
 
       def state
         @state ||= [
-          :stack, :mounts,
+          :stack, :roots,
           :domain, :app,
           :name, :request_methods, :relative_path, :relative_path_requirements
         ].freeze
@@ -43,19 +32,19 @@ module Ambi
         via.kind_of?(Symbol) ? [via] : via
       end
 
-      def normalize_mounts(mounts)  
-        mounts.respond_to?(:to_str) ? [mounts] : mounts
+      def normalize_roots(roots)
+        roots.respond_to?(:to_str) ? [roots] : roots
       end
     end
 
     def initialize(dsl, options = {}, &block)
       @dsl = dsl
 
-      parent, mounts, via, at, requirements = \
-        options.values_at(:parent, :mounts, :via, :at, :requirements)
+      parent, roots, via, at, requirements = \
+        options.values_at(:parent, :roots, :via, :at, :requirements)
 
       @parent                         = parent
-      @own_mounts                     = Scope.normalize_mounts(mounts)
+      @own_roots                      = Scope.normalize_roots(roots)
       @own_request_methods            = Scope.normalize_request_methods(via)
       @own_relative_path              = at 
       @own_relative_path_requirements = requirements
@@ -82,8 +71,8 @@ module Ambi
       clean_room.instance_eval(&block) # if block_given?
     end
 
-    def mounts
-      no_parent? ? own_mounts : parent.mounts
+    def roots
+      no_parent? ? own_roots : parent.roots
     end
 
     def domain

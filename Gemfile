@@ -1,6 +1,7 @@
 source :rubygems
 
 gem 'rack'
+gem 'rack-mount'
 gem 'activesupport', '~> 3.2.8'
 
 group :test do

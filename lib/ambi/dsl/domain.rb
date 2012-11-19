@@ -8,7 +8,7 @@ module Ambi
       module Syntax
         def mounting(name, options = {}, &block)
           if Kernel.block_given?
-            options[:mounts] = options.delete(:on)
+            options[:roots] = options.delete(:on)
             options = options.merge(app: name, parent: scope)
             Scope.new(DSL::App, options) { clean_room_eval(&block) }
           end

@@ -12,9 +12,9 @@ module Ambi
 
     subject { Build.new(routes_a + routes_b) }
 
-    describe 'route_set' do
-      it 'is a Builder::RouteSet' do
-        subject.route_set.should be_kind_of(Build::RouteSet)
+    describe 'routes' do
+      it 'is a Build::RouteSet' do
+        subject.routes.should be_kind_of(Build::RouteSet)
       end
     end
 
@@ -22,12 +22,12 @@ module Ambi
       it 'combines two builds into one' do
         left  = Build.new(routes_a)
         right = Build.new(routes_b)
-        (left + right).route_set.should == subject.route_set
+        (left + right).routes.should == subject.routes
       end
     end
 
     describe '#to_app' do
-      let(:deviant_route) { subject.route_set.first }
+      let(:deviant_route) { subject.routes.first }
 
       it 'ensures a common domain' do
         deviant_route.stub!(:domain).and_return(:'otherdomain.edu')

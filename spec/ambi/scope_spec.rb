@@ -16,9 +16,9 @@ module Ambi
     end
 
     describe 'stack via #own_stack/#stack' do
-      let(:domain_scope_stack) { [[mock('middleware1')], [mock('middleware2')], [mock('middleware3')]] }
-      let(:app_scope_stack)    { [[mock('middleware4')], [mock('middleware5')], [mock('middleware6')]] }
-      let(:endpoint_stack)     { [[mock('middleware7')], [mock('middleware8')], [mock('middleware9')]] }
+      let(:domain_scope_stack) { [[mock('mw1')]] }
+      let(:app_scope_stack)    { [[mock('mw2')]] }
+      let(:endpoint_stack)     { [[mock('mw3')]] }
 
       before do
         domain_scope.instance_variable_set(:@own_stack, domain_scope_stack)
@@ -32,9 +32,7 @@ module Ambi
         end
       end
 
-      it 'builds recursively a scope-specific stack from parent scopes (by appending)' do
-        # Grandchild and parent use DSL::App and DSL::Domain, respectively,
-        # so their middleware stacks are kept separate.
+      it 'builds recursive scopes correctly from parents (by appending)' do
         domain_scope_stack.each do |middleware|
           endpoint_scope.app_stack.should_not include(middleware)
         end
@@ -46,12 +44,12 @@ module Ambi
       end
     end
 
-    describe 'mounts via #own_mounts/#mounts' do
-      let(:mounts) { ['/entries', '/elsewhere'] }
+    describe 'roots via #own_roots/#roots' do
+      let(:roots) { ['/entries', '/elsewhere'] }
 
       it 'inherits from domain scope' do
-        domain_scope.instance_variable_set(:@own_mounts, mounts)
-        endpoint_scope.mounts.should == mounts
+        domain_scope.instance_variable_set(:@own_roots, roots)
+        endpoint_scope.roots.should == roots
       end
     end
 

@@ -24,7 +24,7 @@ Feature: Domain
   Scenario: Mounting the domain
     When I call #to_app on the resulting build for :'myblog.com'
     And I issue a GET on "/entries/2"
-    Then the response status should be 405
+    Then the response status should be 501
     And the response should have the following headers:
       | name         | value      |
       | Content-Type | text/plain |

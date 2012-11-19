@@ -31,19 +31,19 @@ module Ambi
       end
     end
 
-    attr_reader :route_set
+    attr_reader :routes
 
     class InconsistentDomainStackError < RuntimeError; end;
     class InconsistentAppStackError    < RuntimeError; end;
 
-    delegate :domain, :apps, :to => :route_set
+    delegate :domain, :apps, :to => :routes
 
-    def initialize(route_set)
-      @route_set = RouteSet.new(route_set.sort)
+    def initialize(routes)
+      @routes = RouteSet.new(routes.sort)
     end
 
     def +(other)
-      Build.new(route_set + other.route_set)
+      Build.new(routes + other.routes)
     end
 
     def to_app
@@ -64,7 +64,7 @@ module Ambi
     end
 
     def ensure_single_domain_stack!
-      unique_domain_stacks = route_set.uniq(&:domain_stack)
+      unique_domain_stacks = routes.uniq(&:domain_stack)
       unless unique_domain_stacks.size == 1
         message = "Multiple domain stacks for #{domain}."
         raise InconsistentDomainStackError.new(message)
@@ -72,7 +72,7 @@ module Ambi
     end
 
     def ensure_single_app_stack_for!(app)
-      unique_app_stacks = route_set.in(app).collect(&:app_stack).uniq
+      unique_app_stacks = routes.in(app).collect(&:app_stack).uniq
       unless unique_app_stacks.size == 1
         message = "Multiple app stacks for #{app}."
         raise InconsistentAppStackError.new(message)
