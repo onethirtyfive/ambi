@@ -12,7 +12,7 @@ module Ambi
 
     def []=(domain, to_app)
       unless to_app.respond_to?(:to_app)
-        raise ArgumentError.new('Ambi#[]= argument must have #to_app')
+        raise ArgumentError, 'Ambi#[]= argument must have #to_app'
       end
       builds[domain] = to_app
     end

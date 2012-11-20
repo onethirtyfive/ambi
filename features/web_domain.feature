@@ -32,4 +32,3 @@ Feature: Domain
       """
       Not Implemented
       """
-

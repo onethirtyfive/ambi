@@ -26,32 +26,44 @@ module Ambi
       end
     end
 
-    describe '#to_app' do
+    describe '#assert_sane_build!' do
       let(:deviant_route) { subject.routes.first }
 
       it 'ensures a common domain' do
         deviant_route.stub!(:domain).and_return(:'otherdomain.edu')
         expect {
-          subject.to_app
-        }.to raise_error(Build::RouteSet::MultipleDomainsError)
+          subject.assert_sane_build!
+        }.to raise_error(Build::RouteSet::InconsistentDomainError)
+      end
+
+      it 'ensures common roots across all routes within one app' do
+        deviant_route.stub!(:roots).and_return(['/different', '/roots'])
+        expect {
+          subject.assert_sane_build!
+        }.to raise_error(Build::RouteSet::InconsistentRootsError)
       end
 
       it 'ensures a common domain stack across all routes' do
         deviant_route.stub!(:domain_stack).and_return([mock('deviant stack')])
         expect {
-          subject.to_app
+          subject.assert_sane_build!
         }.to raise_error(Build::InconsistentDomainStackError)
       end
 
       it 'ensures a common app stack across all same-app routes' do
         deviant_route.stub!(:app_stack).and_return([mock('deviant stack')])
         expect {
-          subject.to_app
+          subject.assert_sane_build!
         }.to raise_error(Build::InconsistentAppStackError)
       end
+    end
 
-      it 'generates a rack app' do
-        subject.to_app.should respond_to(:call)
+    describe '#to_app' do
+      it 'calls #to_app on each route at least once' do
+        subject.routes.each do |route|
+          route.should_receive(:mount_in).at_least(1).times.and_return(-> {})
+        end
+        subject.to_app
       end
     end
   end

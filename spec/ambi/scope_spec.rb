@@ -48,7 +48,7 @@ module Ambi
       let(:roots) { ['/entries', '/elsewhere'] }
 
       it 'inherits from domain scope' do
-        domain_scope.instance_variable_set(:@own_roots, roots)
+        app_scope.instance_variable_set(:@own_roots, roots)
         endpoint_scope.roots.should == roots
       end
     end

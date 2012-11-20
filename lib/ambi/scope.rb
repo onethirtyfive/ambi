@@ -25,7 +25,7 @@ module Ambi
 
       def auto_assign
         @auto_assign ||= state - \
-          [:request_methods, :relative_path, :relative_path_requirements]
+          [:roots, :request_methods, :relative_path, :relative_path_requirements]
       end
 
       def normalize_request_methods(via)
@@ -41,7 +41,7 @@ module Ambi
       @dsl = dsl
 
       parent, roots, via, at, requirements = \
-        options.values_at(:parent, :roots, :via, :at, :requirements)
+        options.values_at(:parent, :on, :via, :at, :requirements)
 
       @parent                         = parent
       @own_roots                      = Scope.normalize_roots(roots)
@@ -61,7 +61,8 @@ module Ambi
     def clean_room_parse(source)
       clean_room = CleanRoom.new(self, dsl)
       unless source.respond_to?(:to_str)
-        raise '#clean_room_eval requires either a block or #to_str'
+        message = '#clean_room_eval requires either a block or #to_str'
+        raise ArgumentError, message
       end
       clean_room.instance_eval(source.to_str)
     end
@@ -72,14 +73,19 @@ module Ambi
     end
 
     def roots
-      no_parent? ? own_roots : parent.roots
+      if own_roots.nil? && no_parent?
+        message = ':roots must be defined on an app scope'
+        raise ArgumentError, message
+      end
+      own_roots.nil? ? parent.roots : own_roots
     end
 
     def domain
       return own_domain unless own_domain.nil?
 
       if no_parent?
-        raise NoDomainError.new(':domain must be defined standalone or in scope')
+        message = ':domain must be defined standalone or in scope'
+        raise NoDomainError, message
       end
 
       parent.domain
@@ -89,7 +95,8 @@ module Ambi
       return own_app unless own_app.nil?
 
       if no_parent?
-        raise NoAppError.new(':app must be defined standalone or in scope')
+        message = ':app must be defined standalone or in scope'
+        raise NoAppError, message
       end
 
       parent.app
@@ -146,7 +153,7 @@ module Ambi
           value = self.send(state)
           "@#{state}=#{value}" if value
         end
-      "#<Ambi::Scope: #{instance_variables.compact.join(',')}>"
+      "#<Ambi::Scope: @dsl=#{dsl},#{instance_variables.compact.join(',')}>"
     end
 
     protected
